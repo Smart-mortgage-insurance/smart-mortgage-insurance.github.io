@@ -303,7 +303,7 @@
     <div class="hero-copy">
       <div class="hero-badge">⚠️ רוב בעלי המשכנתאות משלמים יותר מדי</div>
       <h1>בכל חודש, בשקט בשקט,<br><span class="accent">יורד לכם מהחשבון כסף מיותר</span></h1>
-      <p class="hero-sub">ואנחנו לא מדברים על הריבית של הבנק — היא אמנם הנתח הגדול, אבל עליה אין הרבה מה לעשות. אנחנו מדברים על <b>ביטוח החיים למשכנתא</b>, שרוב האנשים משלמים עליו בין 20 ל-40 ₪ בחודש — ועליו דווקא כן אפשר להשפיע.</p>
+      <p class="hero-sub">את ריבית המשכנתא קשה לשנות. את עלות <b>ביטוח החיים למשכנתא</b> — שרוב הלווים משלמים עליה בין 20 ל-40 ₪ בחודש — ניתן, במקרים רבים, לצמצם באופן משמעותי.</p>
 
       <div class="hero-stats">
         <div class="hstat"><span class="num">9 מתוך 10</span><span class="label">מקרים שבדקנו — הצלחנו להוזיל</span></div>
@@ -314,7 +314,11 @@
     </div>
 
     <div class="lead" id="lead">
-      <form class="lead-form" id="leadForm">
+      <form class="lead-form" id="leadForm" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="4edea9e2-47fb-4fa3-a1f9-9b90937a4703">
+        <input type="hidden" name="subject" value="פנייה חדשה — בדיקת הוזלת ביטוח משכנתא">
+        <input type="hidden" name="from_name" value="ביטוח חכם למשכנתא">
+        <input type="hidden" name="redirect" class="wf-redirect" value="">
         <h2>שלחו שם וטלפון — ונחזור אליכם</h2>
         <p class="lead-note">שתי שורות בלבד. אנחנו בודקים את הפוליסה הקיימת מאפס ומחזירים תשובה.</p>
         <div class="field">
@@ -489,7 +493,11 @@
     </div>
 
     <div class="lead" id="lead2" style="border:none">
-      <form class="lead-form" id="leadForm2">
+      <form class="lead-form" id="leadForm2" action="https://api.web3forms.com/submit" method="POST">
+        <input type="hidden" name="access_key" value="4edea9e2-47fb-4fa3-a1f9-9b90937a4703">
+        <input type="hidden" name="subject" value="פנייה חדשה — בדיקת הוזלת ביטוח משכנתא">
+        <input type="hidden" name="from_name" value="ביטוח חכם למשכנתא">
+        <input type="hidden" name="redirect" class="wf-redirect" value="">
         <h2 style="color:var(--text)">שלחו שם וטלפון — ונחזור אליכם</h2>
         <p class="lead-note">שם וטלפון בלבד, ללא טפסים ארוכים ומסובכים.</p>
         <div class="field">
@@ -555,8 +563,6 @@
 </div>
 
 <script>
-  var ACCESS_KEY = "4edea9e2-47fb-4fa3-a1f9-9b90937a4703";
-
   function toggleTheme(){
     var cur = document.documentElement.getAttribute('data-theme');
     var next = cur === 'dark' ? 'light' : (cur === 'light' ? null : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
@@ -623,27 +629,29 @@
       open ? 'הסתר סיפורי הצלחה ↑' : 'צפה בעוד סיפורי הצלחה ↓';
   }
 
-  /* form submit via web3forms AJAX — keeps the visitor on the page */
-  function wire(formId, boxId){
-    var form = document.getElementById(formId);
-    if(!form) return;
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      var btn = form.querySelector('.submit'); var orig = btn.textContent;
+  /* form submit — native POST to web3forms (same method as the working reference site).
+     This avoids the Hebrew mojibake seen with the JS fetch()/FormData AJAX path.
+     A per-form redirect URL is set on load so the visitor lands back on this page,
+     and the matching lead box is flipped to its "sent" state via a query param. */
+  document.querySelectorAll('.wf-redirect').forEach(function(el){
+    var boxId = el.closest('form').id === 'leadForm' ? 'lead' : 'lead2';
+    var base = location.origin + location.pathname;
+    el.value = base + '?sent=' + boxId + '#' + boxId;
+  });
+  (function(){
+    var sentId = new URLSearchParams(location.search).get('sent');
+    if(sentId){
+      var box = document.getElementById(sentId);
+      if(box) box.classList.add('sent');
+      history.replaceState(null, '', location.pathname + location.hash);
+    }
+  })();
+  document.querySelectorAll('.lead-form').forEach(function(form){
+    form.addEventListener('submit', function(){
+      var btn = form.querySelector('.submit');
       btn.disabled = true; btn.textContent = 'שולח…';
-      var data = new FormData(form);
-      data.append('access_key', ACCESS_KEY);
-      data.append('subject', 'פנייה חדשה — בדיקת הוזלת ביטוח משכנתא');
-      data.append('from_name', 'ביטוח חכם למשכנתא');
-      fetch('https://api.web3forms.com/submit', {method:'POST', body:data})
-        .then(function(r){ return r.json(); })
-        .then(function(){ document.getElementById(boxId).classList.add('sent'); })
-        .catch(function(){ btn.disabled=false; btn.textContent=orig;
-          alert('שליחה נכשלה. אפשר להתקשר אלינו: 052-7621752'); });
     });
-  }
-  wire('leadForm','lead');
-  wire('leadForm2','lead2');
+  });
 
   /* ---------- motion ----------
      Everything below is progressive enhancement. If any of it is unavailable
