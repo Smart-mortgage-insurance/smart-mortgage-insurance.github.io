@@ -74,8 +74,6 @@
     padding:9px 16px; border-radius:999px; border:1px solid var(--gold);
     color:var(--gold); text-decoration:none; white-space:nowrap; transition:.15s}
   .callbtn:hover{background:var(--gold); color:#fff}
-  .theme{background:none; border:1px solid var(--line); border-radius:9px; width:38px; height:38px;
-    cursor:pointer; color:var(--text); font-size:1rem}
 
   /* ---------- hero ---------- */
   .hero{background:
@@ -118,6 +116,18 @@
   .field input{width:100%; padding:14px 15px; font-size:1.05rem; font-family:inherit;
     border:1.5px solid var(--line); border-radius:11px; background:var(--paper); color:var(--text)}
   .field input:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 4px var(--gold-soft)}
+  .field select,.field textarea{width:100%; padding:14px 15px; font-size:1.05rem; font-family:inherit;
+    border:1.5px solid var(--line); border-radius:11px; background:var(--paper); color:var(--text)}
+  .field select:focus,.field textarea:focus{outline:none; border-color:var(--gold); box-shadow:0 0 0 4px var(--gold-soft)}
+  .field textarea{resize:vertical; min-height:70px}
+  .ins-type-group{display:flex; gap:10px}
+  .ins-type-btn{flex:1; padding:12px 10px; border:1.5px solid var(--line); border-radius:11px;
+    background:var(--paper); color:var(--text); font-family:inherit; font-size:.92rem; font-weight:700;
+    cursor:pointer; transition:.15s}
+  .ins-type-btn:hover{border-color:var(--gold)}
+  .ins-type-btn.active{border-color:var(--gold); background:var(--gold-soft); color:var(--gold-lite)}
+  .opt-section{display:none}
+  .opt-section.visible{display:block}
   .req{color:var(--gold)}
   .submit{width:100%; margin-top:18px; padding:16px; font-size:1.1rem; font-weight:800; font-family:inherit;
     border:none; border-radius:12px; cursor:pointer; color:#1b1405;
@@ -294,7 +304,6 @@
     </div>
     <span class="spacer"></span>
     <a class="callbtn" href="#lead2">לבדיקת הוזלה חינם ←</a>
-    <button class="theme" onclick="toggleTheme()" aria-label="החלפת מצב תצוגה">🌓</button>
   </div>
 </div>
 
@@ -498,8 +507,10 @@
         <input type="hidden" name="subject" value="פנייה חדשה — בדיקת הוזלת ביטוח משכנתא">
         <input type="hidden" name="from_name" value="ביטוח חכם למשכנתא">
         <input type="hidden" name="redirect" class="wf-redirect" value="">
-        <h2 style="color:var(--text)">שלחו שם וטלפון — ונחזור אליכם</h2>
-        <p class="lead-note">שם וטלפון בלבד, ללא טפסים ארוכים ומסובכים.</p>
+        <h2 style="color:var(--text)">שלחו פרטים — ונחזור אליכם</h2>
+        <p class="lead-note">מילוי פרטים נוספים מזרז את הטיפול בפנייה.</p>
+        <input type="hidden" name="סוג הפנייה" id="insuranceTypeHidden2" value="">
+
         <div class="field">
           <label for="n2">שם מלא <span class="req">*</span></label>
           <input id="n2" name="שם מלא" type="text" placeholder="ישראל ישראלי" required autocomplete="name">
@@ -508,6 +519,66 @@
           <label for="p2">מספר טלפון <span class="req">*</span></label>
           <input id="p2" name="מספר טלפון" type="tel" inputmode="tel" placeholder="050-0000000" required autocomplete="tel">
         </div>
+
+        <div class="field">
+          <label>מה סוג הפנייה שלך?</label>
+          <div class="ins-type-group">
+            <button type="button" class="ins-type-btn" id="btnNew2" onclick="selectInsuranceType2('new')">🏠 ביטוח חדש</button>
+            <button type="button" class="ins-type-btn" id="btnTransfer2" onclick="selectInsuranceType2('transfer')">🔄 ניוד ביטוח קיים</button>
+          </div>
+        </div>
+
+        <div class="opt-section" id="sectionNew2">
+          <div class="field">
+            <label for="idNew2">מספר זהות</label>
+            <input id="idNew2" name="מספר זהות" type="text" placeholder="000000000" maxlength="9">
+          </div>
+          <div class="field">
+            <label for="amtNew2">סכום המשכנתא המתוכנן</label>
+            <input id="amtNew2" name="סכום משכנתא" type="text" placeholder="למשל: 800,000 ₪">
+          </div>
+          <div class="field">
+            <label for="bankNew2">מאיזה בנק לוקחים את המשכנתא?</label>
+            <select id="bankNew2" name="בנק המשכנתא">
+              <option value="">— בחר בנק —</option>
+              <option>בנק לאומי</option>
+              <option>בנק הפועלים</option>
+              <option>בנק דיסקונט</option>
+              <option>בנק מזרחי טפחות</option>
+              <option>בנק ירושלים</option>
+              <option>בנק אוצר החייל</option>
+              <option>בנק מרכנתיל</option>
+              <option>בנק הבינלאומי</option>
+              <option>One Zero</option>
+              <option>אחר</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="opt-section" id="sectionTransfer2">
+          <div class="field">
+            <label for="idTr2">מספר זהות</label>
+            <input id="idTr2" name="מספר זהות" type="text" placeholder="000000000" maxlength="9">
+          </div>
+          <div class="field">
+            <label for="balTr2">יתרת משכנתא משוערת</label>
+            <input id="balTr2" name="יתרת משכנתא משוערת" type="text" placeholder="למשל: 500,000 ₪">
+          </div>
+          <div class="field">
+            <label for="compTr2">חברה מבטחת כיום</label>
+            <input id="compTr2" name="חברה המבטחת כיום" type="text" placeholder="שם חברת הביטוח">
+          </div>
+          <div class="field">
+            <label for="payTr2">סכום תשלום חודשי נוכחי</label>
+            <input id="payTr2" name="סכום תשלום חודשי נוכחי" type="text" placeholder="למשל: ₪120">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="note2">הערה חופשית</label>
+          <textarea id="note2" name="הערה" rows="3" placeholder="יש משהו נוסף שכדאי שנדע?"></textarea>
+        </div>
+
         <button class="submit" type="submit">שלח לבדיקה מקצועית ←</button>
         <p class="lead-fine">שעות פעילות: א׳–ה׳ 8:30–17:30</p>
       </form>
@@ -563,16 +634,15 @@
 </div>
 
 <script>
-  function toggleTheme(){
-    var cur = document.documentElement.getAttribute('data-theme');
-    var next = cur === 'dark' ? 'light' : (cur === 'light' ? null : (matchMedia('(prefers-color-scheme: dark)').matches ? 'light' : 'dark'));
-    if(next) document.documentElement.setAttribute('data-theme', next);
-    else document.documentElement.removeAttribute('data-theme');
-    try{ localStorage.setItem('bh_theme', next||''); }catch(e){}
+  function selectInsuranceType2(type){
+    document.getElementById('insuranceTypeHidden2').value = type === 'new' ? 'ביטוח חדש' : 'ניוד ביטוח קיים';
+    document.getElementById('btnNew2').classList.toggle('active', type === 'new');
+    document.getElementById('btnTransfer2').classList.toggle('active', type === 'transfer');
+    document.getElementById('sectionNew2').classList.toggle('visible', type === 'new');
+    document.getElementById('sectionTransfer2').classList.toggle('visible', type === 'transfer');
   }
-  try{ var t = localStorage.getItem('bh_theme'); if(t) document.documentElement.setAttribute('data-theme', t); }catch(e){}
 
-  /* highlight the target form after a CTA jump, so it is obvious where you landed */
+
   document.querySelectorAll('a[href="#lead"],a[href="#lead2"]').forEach(function(a){
     a.addEventListener('click', function(){
       var box = document.getElementById(a.getAttribute('href').slice(1));
@@ -752,7 +822,7 @@
 
     /* count-up — a number that climbs reads as a real sum, not a slogan */
     function countUp(el, to, prefix){
-      var t0 = null, dur = 900;
+      var t0 = null, dur = 2200;
       function frame(t){
         if(t0 === null) t0 = t;
         var p = Math.min((t - t0) / dur, 1);
