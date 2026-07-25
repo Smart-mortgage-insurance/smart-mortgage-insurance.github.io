@@ -889,34 +889,128 @@
 (function(){
   var SUPA_URL = "https://ktcabahjyjmtfavlsdks.supabase.co";
   var SUPA_KEY = "sb_publishable_jYj0az-JCWUc3ga1fRYcew_La1y7qVw";
+  var ua = navigator.userAgent;
+
   function device(){
-    var ua = navigator.userAgent;
     if(/Tablet|iPad/i.test(ua)) return 'טאבלט';
     if(/Mobi|Android/i.test(ua)) return 'מובייל';
     return 'מחשב';
   }
+  function osName(){
+    if(/Windows/i.test(ua)) return 'Windows';
+    if(/Android/i.test(ua)) return 'Android';
+    if(/iPhone|iPad|iPod/i.test(ua)) return 'iOS';
+    if(/Mac OS X/i.test(ua)) return 'macOS';
+    if(/Linux/i.test(ua)) return 'Linux';
+    return 'אחר';
+  }
+  function browserName(){
+    if(/Edg\//i.test(ua)) return 'Edge';
+    if(/OPR\/|Opera/i.test(ua)) return 'Opera';
+    if(/SamsungBrowser/i.test(ua)) return 'Samsung';
+    if(/Chrome\//i.test(ua)) return 'Chrome';
+    if(/Firefox\//i.test(ua)) return 'Firefox';
+    if(/Safari\//i.test(ua)) return 'Safari';
+    return 'אחר';
+  }
+
+  /* returning visitor — set the flag on the first visit, read it on later ones */
+  var returningVisitor = false;
+  try{
+    returningVisitor = localStorage.getItem('v_seen') === '1';
+    localStorage.setItem('v_seen', '1');
+  }catch(e){}
+
+  var screenSize = (screen.width||0) + 'x' + (screen.height||0) +
+                   (window.devicePixelRatio > 1 ? ' @' + window.devicePixelRatio + 'x' : '');
+
+  /* which ad/link brought them here */
+  var qp = new URLSearchParams(location.search);
+  function utm(k){ var v = qp.get(k); return (v && v.length < 120) ? v : null; }
+  var utmSource = utm('utm_source'), utmMedium = utm('utm_medium'), utmCampaign = utm('utm_campaign');
+
+  /* approximate city from the IP — best effort, may be the ISP's routing city
+     (poor on mobile) and may be blocked on filtered networks. Never blocks the
+     visit: if it hasn't resolved by send time the city columns just stay empty. */
+  var geo = {};
+  function geoFrom(url, map){
+    return fetch(url).then(function(r){ return r.json(); }).then(function(d){ if(d) map(d); });
+  }
+  geoFrom('https://ipwho.is/', function(d){
+    if(d.success === false) throw 0;
+    geo.city = d.city || null; geo.region = d.region || null;
+    geo.country = d.country || null;
+    geo.isp = (d.connection && d.connection.isp) || null;
+  }).catch(function(){
+    return geoFrom('https://ipapi.co/json/', function(d){
+      geo.city = d.city || null; geo.region = d.region || null;
+      geo.country = d.country_name || null; geo.isp = d.org || null;
+    });
+  }).catch(function(){});
+
+  /* engagement signals */
+  var maxScroll = 0, reachedForm = false, viewedTestimonials = false;
+  function scrollPct(){
+    var h = document.documentElement.scrollHeight - innerHeight;
+    return h > 0 ? Math.min(100, Math.round(scrollY / h * 100)) : 100;
+  }
+  var forms = document.querySelectorAll('form');
+  function checkForm(){
+    if(reachedForm) return;
+    for(var i=0;i<forms.length;i++){
+      var r = forms[i].getBoundingClientRect();
+      if(r.top < innerHeight * 0.9 && r.bottom > 0){ reachedForm = true; return; }
+    }
+  }
+  addEventListener('scroll', function(){
+    var p = scrollPct(); if(p > maxScroll) maxScroll = p;
+    checkForm();
+  }, {passive:true});
+  checkForm();
+  var tstBtn = document.getElementById('tstToggle');
+  if(tstBtn) tstBtn.addEventListener('click', function(){ viewedTestimonials = true; });
+
   var startTime = Date.now();
   var converted = false;
   var sent = false;
 
-  function sendVisit(){
-    if(sent) return; sent = true;
-    var duration = Math.round((Date.now()-startTime)/1000);
+  function base(){
+    return {
+      path: location.pathname,
+      referrer: document.referrer || null,
+      user_agent: ua,
+      device: device(),
+      duration: Math.round((Date.now() - startTime) / 1000),
+      converted: converted
+    };
+  }
+  function full(){
+    var p = base();
+    p.city = geo.city || null; p.region = geo.region || null;
+    p.country = geo.country || null; p.isp = geo.isp || null;
+    p.utm_source = utmSource; p.utm_medium = utmMedium; p.utm_campaign = utmCampaign;
+    p.scroll_depth = maxScroll; p.reached_form = reachedForm;
+    p.viewed_testimonials = viewedTestimonials; p.returning_visitor = returningVisitor;
+    p.browser = browserName(); p.os = osName(); p.screen_size = screenSize;
+    return p;
+  }
+  function post(body, onFail){
     try{
       fetch(SUPA_URL + '/rest/v1/visits', {
         method:'POST', keepalive:true,
         headers:{'Content-Type':'application/json','apikey':SUPA_KEY,'Prefer':'return=minimal'},
-        body: JSON.stringify({
-          path: location.pathname,
-          referrer: document.referrer || null,
-          user_agent: navigator.userAgent,
-          device: device(),
-          duration: duration,
-          converted: converted
-        })
-      });
-    }catch(e){}
+        body: JSON.stringify(body)
+      }).then(function(r){ if(!r.ok && onFail) onFail(); })
+        .catch(function(){ if(onFail) onFail(); });
+    }catch(e){ if(onFail) onFail(); }
   }
+  function sendVisit(){
+    if(sent) return; sent = true;
+    /* Try the rich record; if the new columns aren't in the table yet, fall back
+       to the original six fields so a visit is never lost. */
+    post(full(), function(){ post(base()); });
+  }
+
   /* Hold the record while a form is being filled, so switching apps mid-form
      is not written down as a non-conversion. */
   var touched = false;
@@ -929,7 +1023,6 @@
   });
   window.addEventListener('pagehide', sendVisit);
 
-  var forms = document.querySelectorAll('form');
   for(var i=0;i<forms.length;i++){
     forms[i].addEventListener('submit', function(){ converted = true; sendVisit(); });
   }
