@@ -1041,5 +1041,58 @@
 })();
 </script>
 
+<!-- חלון עדכון: טיוטת חוזר "הנחות בביטוח חיים" (רשות שוק ההון, 12.8.2026) -->
+<style>
+  .rf-back{position:fixed; inset:0; z-index:90; display:none; align-items:center; justify-content:center; padding:18px;
+    background:rgba(15,17,22,.62); opacity:0; transition:opacity .25s}
+  .rf-back.on{display:flex}
+  .rf-back.in{opacity:1}
+  .rf-box{position:relative; width:100%; max-width:460px; max-height:calc(100vh - 36px); overflow:auto; background:var(--card); color:var(--text);
+    border-radius:18px; border-top:6px solid var(--gold); box-shadow:var(--shadow-lg); padding:26px 24px 22px; text-align:right;
+    transform:translateY(14px); transition:transform .25s}
+  .rf-back.in .rf-box{transform:none}
+  .rf-x{position:absolute; top:10px; left:12px; width:36px; height:36px; border:0; border-radius:50%; background:var(--paper-2); color:var(--text);
+    font:inherit; font-size:22px; line-height:1; cursor:pointer}
+  .rf-tag{display:inline-block; font-size:13px; font-weight:800; color:#fff; background:#c0392b; padding:4px 12px; border-radius:999px}
+  .rf-box h2{font-size:25px; line-height:1.2; font-weight:800; margin:12px 0 10px}
+  .rf-box p{font-size:16.5px; line-height:1.55; color:var(--text); margin:0 0 12px}
+  .rf-quote{background:var(--gold-soft); border-right:4px solid var(--gold); border-radius:10px; padding:12px 14px; margin:0 0 12px}
+  .rf-quote b{display:block; font-size:19px; line-height:1.35}
+  .rf-quote span{display:block; font-size:13.5px; color:var(--sub); margin-top:4px}
+  .rf-box .rf-link{display:inline-block; font-size:15.5px; font-weight:700; color:var(--gold); text-decoration:underline; text-underline-offset:3px; margin-bottom:16px}
+  .rf-box .rf-go{display:flex; width:100%; justify-content:center; align-items:center; border:0; border-radius:12px; padding:14px 16px; cursor:pointer;
+    font:inherit; font-size:18px; font-weight:800; color:#fff; background:var(--save)}
+  .rf-box .rf-fine{font-size:12.5px; color:var(--sub); margin:10px 0 0; text-align:center}
+</style>
+<div class="rf-back" id="rfBack" role="dialog" aria-modal="true" aria-labelledby="rfTitle">
+  <div class="rf-box">
+    <button class="rf-x" id="rfX" type="button" aria-label="סגירה">×</button>
+    <span class="rf-tag">עדכון חשוב לבעלי משכנתא</span>
+    <h2 id="rfTitle">כללי ההנחות בביטוח חיים עומדים להשתנות</h2>
+    <p>רשות שוק ההון פרסמה טיוטת חוזר בשם "הנחות בביטוח חיים" (12.8.2026). לפיה חברת ביטוח תוכל לתת הנחה רק אם שיעור ההנחה לא יפחת עד תום תקופת הביטוח.</p>
+    <div class="rf-quote"><b>"תחילתו של חוזר זה ביום 1 בדצמבר 2026."</b><span>מתוך סעיף 5 לטיוטת החוזר</span></div>
+    <a class="rf-link" href="https://www.gov.il/BlobFolder/dynamiccollectorresultitem/regulation-533/he/Discounts_in_Life_Insurance_Draft_PDF.pdf" target="_blank" rel="noopener">לצפייה בנוסח המלא באתר רשות שוק ההון ←</a>
+    <button class="rf-go" id="rfGo" type="button">לבדיקת חיסכון חינם, לפני השינוי</button>
+    <p class="rf-fine">טיוטה שפורסמה להערות הציבור; בכפוף לאישור סופי.</p>
+  </div>
+</div>
+<script>
+(function(){
+  var back=document.getElementById('rfBack'); if(!back) return;
+  function seen(){ try{ return sessionStorage.getItem('rfSeen')==='1'; }catch(e){ return false; } }
+  function mark(){ try{ sessionStorage.setItem('rfSeen','1'); }catch(e){} }
+  function open(){ back.classList.add('on'); requestAnimationFrame(function(){ back.classList.add('in'); }); mark();
+    if(window.gtag) gtag('event','reform_popup_open'); }
+  function close(){ back.classList.remove('in'); setTimeout(function(){ back.classList.remove('on'); },250); }
+  document.getElementById('rfX').addEventListener('click',close);
+  back.addEventListener('click',function(e){ if(e.target===back) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
+  document.getElementById('rfGo').addEventListener('click',function(){ close();
+    if(window.gtag) gtag('event','reform_popup_cta');
+    var lead=document.getElementById('lead'); if(lead) lead.scrollIntoView({behavior:'smooth',block:'start'}); });
+  if(!seen()) setTimeout(open,1500);
+})();
+</script>
+
 </body>
 </html>
