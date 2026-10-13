@@ -1079,9 +1079,7 @@
 <script>
 (function(){
   var back=document.getElementById('rfBack'); if(!back) return;
-  function seen(){ try{ return sessionStorage.getItem('rfSeen')==='1'; }catch(e){ return false; } }
-  function mark(){ try{ sessionStorage.setItem('rfSeen','1'); }catch(e){} }
-  function open(){ back.classList.add('on'); requestAnimationFrame(function(){ back.classList.add('in'); }); mark();
+  function open(){ back.classList.add('on'); requestAnimationFrame(function(){ back.classList.add('in'); });
     if(window.gtag) gtag('event','reform_popup_open'); }
   function close(){ back.classList.remove('in'); setTimeout(function(){ back.classList.remove('on'); },250); }
   document.getElementById('rfX').addEventListener('click',close);
@@ -1090,7 +1088,7 @@
   document.getElementById('rfGo').addEventListener('click',function(){ close();
     if(window.gtag) gtag('event','reform_popup_cta');
     var lead=document.getElementById('lead'); if(lead) lead.scrollIntoView({behavior:'smooth',block:'start'}); });
-  if(!seen()) setTimeout(open,1500);
+  setTimeout(open,1500);
 })();
 </script>
 
